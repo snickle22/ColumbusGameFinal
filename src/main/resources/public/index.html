@@ -4,18 +4,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ocean Explorer</title>
+    <title>Christopher Columbus Sails the Ocean Blue</title>
 
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
-    <h1>Ocean Explorer</h1>
+    <!-- Start Menu -->
+    <div id="start-menu">
 
-    <p id="server-message">Loading game...</p>
+        <h1>Christopher Columbus Sails the Ocean Blue</h1>
 
-    <div id="game-grid"></div>
+        <p>Set up your voyage before setting sail!</p>
+
+        <div class="menu-settings">
+
+            <label for="grid-size">Ocean Grid Size</label>
+            <select id="grid-size">
+                <option value="10">10 x 10</option>
+                <option value="15">15 x 15</option>
+                <option value="20">20 x 20</option>
+                <option value="25">25 x 25</option>
+            </select>
+
+            <label for="island-count">Number of Islands</label>
+            <select id="island-count">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="40">40</option>
+            </select>
+
+            <label for="pirate-count">Number of Pirate Ships</label>
+            <select id="pirate-count">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+
+            <label for="monster-count">Number of Sea Monsters</label>
+            <select id="monster-count">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+
+            <label for="pirate-strategy">Pirate Movement Strategy</label>
+            <select id="pirate-strategy">
+                <option value="chase">Basic Chase</option>
+                <option value="random">Random Movement</option>
+                <option value="smart">Smart Chase</option>
+            </select>
+
+        </div>
+
+        <button id="start-game-button">Start Game</button>
+
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" style="display: none;">
+
+        <h1>Christopher Columbus Sails the Ocean Blue</h1>
+
+        <p id="server-message">Loading game...</p>
+
+        <div id="game-grid"></div>
+
+    </div>
 
     <script src="/script.js"></script>
+
 </body>
 </html>

@@ -8,12 +8,13 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.oceanexplorer.game.Game;
 import com.oceanexplorer.game.GameState;
+import com.oceanexplorer.game.GameConfig;
 
 import fi.iki.elonen.NanoHTTPD;
 
 public class GameServer extends NanoHTTPD {
 
-    private final Game game = new Game();
+    private Game game;
     private final Gson gson = new Gson();
 
     public GameServer() {
@@ -24,6 +25,45 @@ public class GameServer extends NanoHTTPD {
     public Response serve(IHTTPSession session) {
 
         String uri = session.getUri();
+
+        // Start a new game using the menu configuration
+        if (uri.equals("/api/start") && session.getMethod() == Method.POST) {
+
+            try {
+                Map<String, String> body = new java.util.HashMap<>();
+
+                session.parseBody(body);
+
+                String requestBody = body.get("postData");
+
+                GameConfig config = gson.fromJson(requestBody, GameConfig.class);   
+                game = new Game(config);
+
+                GameState gameState = new GameState(game);
+
+                return newFixedLengthResponse(
+                        Response.Status.OK,
+                        "application/json",
+                        gson.toJson(gameState)
+                );
+            } catch (IOException | ResponseException e) {
+
+                return newFixedLengthResponse(
+                        Response.Status.INTERNAL_ERROR,
+                        "text/plain",
+                        "Error processing start game request."
+                );
+
+            } catch (IllegalArgumentException e) {
+
+                return newFixedLengthResponse(
+                        Response.Status.BAD_REQUEST,
+                        "text/plain",
+                        "Invalid game configuration."
+                );
+            }
+        }
+
 
         // Return the current game state
         if (uri.equals("/api/state") &&

@@ -5,8 +5,8 @@ import java.awt.Point;
 
 public class Game {
 
-    private static final int GRID_SIZE = 10;
-    private static final int ISLAND_COUNT = 10;
+    private int gridSize;
+    private int islandCount;
 
     private OceanMap oceanMap;
     private Ship ship;
@@ -15,15 +15,26 @@ public class Game {
     private PirateShip pirate2;
 
     public Game() {
+        this.gridSize = 10;
+        this.islandCount = 10;
+
+        initializeGame();
+    }
+
+    public Game(GameConfig config) {
+
+        this.gridSize = config.getGridSize();
+        this.islandCount = config.getIslandCount();
+
         initializeGame();
     }
 
     private void initializeGame() {
 
-        oceanMap = new OceanMap(GRID_SIZE);
-        oceanMap.generateIslands(ISLAND_COUNT);
+        oceanMap = new OceanMap(gridSize);
+        oceanMap.generateIslands(islandCount);
 
-        ship = new Ship(oceanMap.getMap(), GRID_SIZE);
+        ship = new Ship(oceanMap.getMap(), gridSize);
 
         Point playerLocation = ship.getPosition();
 
@@ -31,14 +42,14 @@ public class Game {
                 oceanMap.getMap(),
                 playerLocation,
                 null,
-                GRID_SIZE
+                gridSize
         );
 
         pirate2 = new PirateShip(
                 oceanMap.getMap(),
                 playerLocation,
                 pirate1.getShipLocation(),
-                GRID_SIZE
+                gridSize
         );
     }
 
@@ -81,10 +92,8 @@ public class Game {
                 throw new IllegalArgumentException("Invalid direction.");
         }
 
-        // Get the player's updated position
         Point playerLocation = ship.getPosition();
 
-        // Move both pirates toward the player
         pirate1.chase(playerLocation);
         pirate2.chase(playerLocation);
 

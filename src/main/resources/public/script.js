@@ -3,11 +3,56 @@ console.log("Ocean Explorer JavaScript is running!");
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    loadGameState();
-
-    document.addEventListener("keydown", handleKeyPress);
+    document.getElementById("start-game-button")
+        .addEventListener("click", startGame); 
 
 });
+
+async function startGame() {
+
+    const config = {
+        gridSize: Number(document.getElementById("grid-size").value),
+        islandCount: Number(document.getElementById("island-count").value),
+        pirateCount: Number(document.getElementById("pirate-count").value),
+        seaMonsterCount: Number(document.getElementById("monster-count").value),
+        pirateStrategy: document.getElementById("pirate-strategy").value
+    };
+
+    try {
+
+        const response = await fetch("/api/start", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(config)
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to start the game.");
+        }
+
+        const gameState = await response.json();
+
+        // Hide start menu 
+        document.getElementById("start-menu").style.display = "none";
+
+        // Show the game
+        document.getElementById("game-screen").style.display = "block";
+
+        // Display the game 
+        document.getElementById("server-message").textContent =
+            `Game started! Grid size: ${gameState.dimensions}x${gameState.dimensions}`;
+        displayGame(gameState);
+
+        // Enable keyboard controls
+        document.addEventListener("keydown", handleKeyPress);
+    } catch (error) {
+
+        console.error("Error starting game:", error);
+        alert("Could not start the game. Please try again.");
+    }
+}
 
 async function loadGameState() {
 
@@ -41,6 +86,12 @@ function displayGame(gameState) {
     const grid = document.getElementById("game-grid");
 
     grid.innerHTML = "";
+    
+    grid.style.gridTemplateColumns = 
+        `repeat(${gameState.dimensions}, 50px)`;
+
+    grid.style.gridTemplateRows = 
+        `repeat(${gameState.dimensions}, 50px)`;
 
     for (let y = 0; y < gameState.dimensions; y++) {
 
