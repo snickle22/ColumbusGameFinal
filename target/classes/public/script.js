@@ -80,17 +80,16 @@ async function loadGameState() {
     }
 }
 
-
 function displayGame(gameState) {
 
     const grid = document.getElementById("game-grid");
 
     grid.innerHTML = "";
-    
-    grid.style.gridTemplateColumns = 
+
+    grid.style.gridTemplateColumns =
         `repeat(${gameState.dimensions}, 50px)`;
 
-    grid.style.gridTemplateRows = 
+    grid.style.gridTemplateRows =
         `repeat(${gameState.dimensions}, 50px)`;
 
     for (let y = 0; y < gameState.dimensions; y++) {
@@ -103,6 +102,7 @@ function displayGame(gameState) {
 
             // Display islands
             if (!gameState.map[x][y]) {
+
                 cell.classList.add("island");
 
                 const islandImage = document.createElement("img");
@@ -115,39 +115,42 @@ function displayGame(gameState) {
 
             // Display player ship
             if (x === gameState.shipX && y === gameState.shipY) {
+
                 cell.innerHTML = "";
+
                 const shipImage = document.createElement("img");
                 shipImage.src = "/images/ship.jpg";
                 shipImage.alt = "Player ship";
                 shipImage.classList.add("game-image");
+
                 cell.appendChild(shipImage);
             }
 
-            // Display first pirate
-            else if (x === gameState.pirate1X && y === gameState.pirate1Y) {
-                cell.innerHTML = "";
-                const pirateImage = document.createElement("img");
-                pirateImage.src = "/images/pirateShip.jpg";
-                pirateImage.alt = "Pirate ship";
-                pirateImage.classList.add("game-image");
-                cell.appendChild(pirateImage);
-            }
+            // Display pirate ships
+            else {
 
-            // Display second pirate
-            else if (x === gameState.pirate2X && y === gameState.pirate2Y) {
-                cell.innerHTML = "";
-                const pirateImage = document.createElement("img");
-                pirateImage.src = "/images/pirateShip.jpg";
-                pirateImage.alt = "Pirate ship";
-                pirateImage.classList.add("game-image");
-                cell.appendChild(pirateImage);
+                const pirateIndex = gameState.piratePositions.findIndex(
+                    position => position[0] === x && position[1] === y
+                );
+
+                if (pirateIndex !== -1) {
+
+                    cell.innerHTML = "";
+                    cell.classList.add("pirate");
+
+                    const pirateImage = document.createElement("img");
+                    pirateImage.src = "/images/pirateShip.jpg";
+                    pirateImage.alt = "Pirate ship";
+                    pirateImage.classList.add("game-image");
+
+                    cell.appendChild(pirateImage);
+                }
             }
 
             grid.appendChild(cell);
         }
     }
 }
-
 
 // Handle arrow key presses
 function handleKeyPress(event) {

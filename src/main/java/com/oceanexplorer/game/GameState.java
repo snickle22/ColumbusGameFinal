@@ -1,6 +1,9 @@
 
 package com.oceanexplorer.game;
 
+import java.awt.Point;
+import java.util.List;
+
 public class GameState {
 
     private final boolean[][] map;
@@ -8,28 +11,32 @@ public class GameState {
     private final int shipX;
     private final int shipY;
 
-    private final int pirate1X;
-    private final int pirate1Y;
-
-    private final int pirate2X;
-    private final int pirate2Y;
+    // Each entry contains a pirate's [x, y] coordinates
+    private final int[][] piratePositions;
 
     private final int dimensions;
 
     public GameState(Game game) {
 
-        this.map = game.getOceanMap().getMap();
+        map = game.getOceanMap().getMap();
 
-        this.shipX = game.getShip().getPosition().x;
-        this.shipY = game.getShip().getPosition().y;
+        Point shipLocation = game.getShip().getPosition();
+        shipX = shipLocation.x;
+        shipY = shipLocation.y;
 
-        this.pirate1X = game.getPirate1().getShipLocation().x;
-        this.pirate1Y = game.getPirate1().getShipLocation().y;
+        List<PirateShip> pirates = game.getPirates();
 
-        this.pirate2X = game.getPirate2().getShipLocation().x;
-        this.pirate2Y = game.getPirate2().getShipLocation().y;
+        piratePositions = new int[pirates.size()][2];
 
-        this.dimensions = game.getOceanMap().getDimensions();
+        for (int i = 0; i < pirates.size(); i++) {
+
+            Point location = pirates.get(i).getShipLocation();
+
+            piratePositions[i][0] = location.x;
+            piratePositions[i][1] = location.y;
+        }
+
+        dimensions = game.getOceanMap().getDimensions();
     }
 
     public boolean[][] getMap() {
@@ -44,20 +51,8 @@ public class GameState {
         return shipY;
     }
 
-    public int getPirate1X() {
-        return pirate1X;
-    }
-
-    public int getPirate1Y() {
-        return pirate1Y;
-    }
-
-    public int getPirate2X() {
-        return pirate2X;
-    }
-
-    public int getPirate2Y() {
-        return pirate2Y;
+    public int[][] getPiratePositions() {
+        return piratePositions;
     }
 
     public int getDimensions() {

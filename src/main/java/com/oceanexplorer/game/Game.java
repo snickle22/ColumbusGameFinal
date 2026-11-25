@@ -2,61 +2,63 @@
 package com.oceanexplorer.game;
 
 import java.awt.Point;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Game {
 
     private int gridSize;
     private int islandCount;
+    private int pirateCount;
 
     private OceanMap oceanMap;
     private Ship ship;
 
-    private PirateShip pirate1;
-    private PirateShip pirate2;
+    private final List<PirateShip> pirates = new ArrayList<>();
 
     public Game() {
-        this.gridSize = 10;
-        this.islandCount = 10;
+        gridSize = 10;
+        islandCount = 10;
+        pirateCount = 2;
 
         initializeGame();
     }
 
     public Game(GameConfig config) {
-
-        this.gridSize = config.getGridSize();
-        this.islandCount = config.getIslandCount();
+        gridSize = config.getGridSize();
+        islandCount = config.getIslandCount();
+        pirateCount = config.getPirateCount();
 
         initializeGame();
     }
 
     private void initializeGame() {
 
-        // Retrieve the singleton instance of OceanMap
+        // Get the shared Singleton map
         oceanMap = OceanMap.getInstance(gridSize);
-
-        // Reset map for a new game
         oceanMap.initializeMap();
-
-        // Generate islands
         oceanMap.generateIslands(islandCount);
 
         ship = new Ship(oceanMap.getMap(), gridSize);
 
-        Point playerLocation = ship.getPosition();
+        pirates.clear();
 
-        pirate1 = new PirateShip(
-                oceanMap.getMap(),
-                playerLocation,
-                null,
-                gridSize
-        );
+        // Track occupied locations so ships don't spawn on one another
+        List<Point> occupiedLocations = new ArrayList<>();
+        occupiedLocations.add(ship.getPosition());
 
-        pirate2 = new PirateShip(
-                oceanMap.getMap(),
-                playerLocation,
-                pirate1.getShipLocation(),
-                gridSize
-        );
+        // Create the requested number of pirate ships
+        for (int i = 0; i < pirateCount; i++) {
+
+            PirateShip pirate = new PirateShip(
+                    oceanMap.getMap(),
+                    occupiedLocations,
+                    gridSize
+            );
+
+            pirates.add(pirate);
+            occupiedLocations.add(pirate.getShipLocation());
+        }
     }
 
     public void reset() {
@@ -71,12 +73,8 @@ public class Game {
         return ship;
     }
 
-    public PirateShip getPirate1() {
-        return pirate1;
-    }
-
-    public PirateShip getPirate2() {
-        return pirate2;
+    public List<PirateShip> getPirates() {
+        return pirates;
     }
 
     public GameState move(String direction) {
@@ -98,10 +96,12 @@ public class Game {
                 throw new IllegalArgumentException("Invalid direction.");
         }
 
+        // Move every pirate toward the player's position
         Point playerLocation = ship.getPosition();
 
-        pirate1.chase(playerLocation);
-        pirate2.chase(playerLocation);
+        for (PirateShip pirate : pirates) {
+            pirate.chase(playerLocation);
+        }
 
         return new GameState(this);
     }

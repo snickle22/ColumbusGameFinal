@@ -2,6 +2,7 @@
 package com.oceanexplorer.game;
 
 import java.awt.Point;
+import java.util.List;
 import java.util.Random;
 
 public class PirateShip {
@@ -11,17 +12,16 @@ public class PirateShip {
     private final int dimensions;
     private final Random random = new Random();
 
-    public PirateShip(boolean[][] oceanGrid, Point playerLocation,
-                      Point otherPirateLocation, int dimensions) {
+    public PirateShip(boolean[][] oceanGrid, List<Point> occupiedLocations,
+                     int dimensions) {
 
         this.oceanGrid = oceanGrid;
         this.dimensions = dimensions;
 
-        setStartPosition(playerLocation, otherPirateLocation);
+        setStartPosition(occupiedLocations);
     }
 
-    private void setStartPosition(Point playerLocation,
-                                  Point otherPirateLocation) {
+    private void setStartPosition(List<Point> occupiedLocations) {
 
         int x;
         int y;
@@ -31,9 +31,7 @@ public class PirateShip {
             y = random.nextInt(dimensions);
 
         } while (!oceanGrid[x][y]
-                || new Point(x, y).equals(playerLocation)
-                || (otherPirateLocation != null
-                && new Point(x, y).equals(otherPirateLocation)));
+                || occupiedLocations.contains(new Point(x, y)));
 
         position = new Point(x, y);
     }
@@ -97,4 +95,3 @@ public class PirateShip {
         }
     }
 }
-
