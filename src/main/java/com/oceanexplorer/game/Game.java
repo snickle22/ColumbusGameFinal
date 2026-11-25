@@ -31,7 +31,13 @@ public class Game {
 
     private void initializeGame() {
 
-        oceanMap = new OceanMap(gridSize);
+        // Retrieve the singleton instance of OceanMap
+        oceanMap = OceanMap.getInstance(gridSize);
+
+        // Reset map for a new game
+        oceanMap.initializeMap();
+
+        // Generate islands
         oceanMap.generateIslands(islandCount);
 
         ship = new Ship(oceanMap.getMap(), gridSize);

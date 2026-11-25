@@ -1,19 +1,43 @@
+
 package com.oceanexplorer.game;
 
 import java.util.Random;
 
 public class OceanMap {
 
-    private final int dimensions;
-    private final boolean[][] map;
+    // The single shared instance of OceanMap
+    private static OceanMap instance;
+
+    private int dimensions;
+    private boolean[][] map;
 
     private final Random random = new Random();
 
-    public OceanMap(int dimensions) {
+    // Private constructor prevents other classes from creating OceanMap
+    private OceanMap(int dimensions) {
         this.dimensions = dimensions;
-        this.map = new boolean[dimensions][dimensions];
+        initializeMap();
+    }
 
-        // Initialize every location as water
+    // Returns the shared OceanMap instance
+    public static OceanMap getInstance(int dimensions) {
+
+        if (instance == null) {
+            instance = new OceanMap(dimensions);
+        }
+        else if (instance.dimensions != dimensions) {
+            instance.dimensions = dimensions;
+            instance.initializeMap();
+        }
+
+        return instance;
+    }
+
+    // Initializes the entire map as water
+    public void initializeMap() {
+
+        map = new boolean[dimensions][dimensions];
+
         for (int x = 0; x < dimensions; x++) {
             for (int y = 0; y < dimensions; y++) {
                 map[x][y] = true;
