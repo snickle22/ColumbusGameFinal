@@ -12,6 +12,8 @@ public class Game {
     private int pirateCount;
     private int seaMonsterCount;
 
+    private PirateStrategy pirateStrategy;
+
     private OceanMap oceanMap;
     private Ship ship;
 
@@ -23,6 +25,7 @@ public class Game {
         islandCount = 10;
         pirateCount = 2;
         seaMonsterCount = 0;
+        pirateStrategy = new ChaseStrategy();
 
         initializeGame();
     }
@@ -32,8 +35,22 @@ public class Game {
         islandCount = config.getIslandCount();
         pirateCount = config.getPirateCount();
         seaMonsterCount = config.getSeaMonsterCount();
+        pirateStrategy = createPirateStrategy(config.getPirateStrategy());
 
         initializeGame();
+    }
+
+    private PirateStrategy createPirateStrategy(String strategy) {
+        switch (strategy.toLowerCase()) {
+            case "chase":
+                return new ChaseStrategy();
+            case "random":
+                return new RandomStrategy();
+            case "smart":
+                return new SmartStrategy();
+            default:
+                throw new IllegalArgumentException("Invalid pirate strategy: " + strategy);
+        }
     }
 
     private void initializeGame() {
@@ -122,7 +139,7 @@ public class Game {
         Point playerLocation = ship.getPosition();
 
         for (PirateShip pirate : pirates) {
-            pirate.chase(playerLocation);
+            pirateStrategy.move(pirate, playerLocation);
         }
 
         // Move every sea monster randomly

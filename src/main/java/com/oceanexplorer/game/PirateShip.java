@@ -40,24 +40,6 @@ public class PirateShip {
         return new Point(position);
     }
 
-    public void chase(Point playerLocation) {
-
-        // Chase horizontally
-        if (position.x < playerLocation.x) {
-            goEast();
-        }
-        else if (position.x > playerLocation.x) {
-            goWest();
-        }
-
-        // Chase vertically
-        if (position.y < playerLocation.y) {
-            goSouth();
-        }
-        else if (position.y > playerLocation.y) {
-            goNorth();
-        }
-    }
 
     public void goEast() {
 
