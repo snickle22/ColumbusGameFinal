@@ -14,6 +14,9 @@ public class GameState {
     // Each entry contains a pirate's [x, y] coordinates
     private final int[][] piratePositions;
 
+    // Sea moonster [x, y] coordinates
+    private final int[][] seaMonsterPositions;
+
     private final int dimensions;
 
     public GameState(Game game) {
@@ -36,6 +39,17 @@ public class GameState {
             piratePositions[i][1] = location.y;
         }
 
+        List<SeaMonster> seaMonsters = game.getSeaMonsters();
+        seaMonsterPositions = new int[seaMonsters.size()][2];
+
+        for (int i = 0; i < seaMonsters.size(); i++) {
+
+            Point location = seaMonsters.get(i).getPosition();
+
+            seaMonsterPositions[i][0] = location.x;
+            seaMonsterPositions[i][1] = location.y;
+        }
+
         dimensions = game.getOceanMap().getDimensions();
     }
 
@@ -53,6 +67,10 @@ public class GameState {
 
     public int[][] getPiratePositions() {
         return piratePositions;
+    }
+
+    public int[][] getSeaMonsterPositions() {
+        return seaMonsterPositions;
     }
 
     public int getDimensions() {

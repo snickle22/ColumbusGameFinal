@@ -10,16 +10,19 @@ public class Game {
     private int gridSize;
     private int islandCount;
     private int pirateCount;
+    private int seaMonsterCount;
 
     private OceanMap oceanMap;
     private Ship ship;
 
     private final List<PirateShip> pirates = new ArrayList<>();
+    private final List<SeaMonster> seaMonsters = new ArrayList<>();
 
     public Game() {
         gridSize = 10;
         islandCount = 10;
         pirateCount = 2;
+        seaMonsterCount = 0;
 
         initializeGame();
     }
@@ -28,6 +31,7 @@ public class Game {
         gridSize = config.getGridSize();
         islandCount = config.getIslandCount();
         pirateCount = config.getPirateCount();
+        seaMonsterCount = config.getSeaMonsterCount();
 
         initializeGame();
     }
@@ -42,6 +46,7 @@ public class Game {
         ship = new Ship(oceanMap.getMap(), gridSize);
 
         pirates.clear();
+        seaMonsters.clear();
 
         // Track occupied locations so ships don't spawn on one another
         List<Point> occupiedLocations = new ArrayList<>();
@@ -59,6 +64,19 @@ public class Game {
             pirates.add(pirate);
             occupiedLocations.add(pirate.getShipLocation());
         }
+
+        // Create the requested number of sea monsters
+        for (int i = 0; i < seaMonsterCount; i++) {
+
+            SeaMonster seaMonster = new SeaMonster(
+                    oceanMap.getMap(),
+                    occupiedLocations,
+                    gridSize
+            );
+
+            seaMonsters.add(seaMonster);
+            occupiedLocations.add(seaMonster.getPosition());
+        }
     }
 
     public void reset() {
@@ -75,6 +93,10 @@ public class Game {
 
     public List<PirateShip> getPirates() {
         return pirates;
+    }
+
+    public List<SeaMonster> getSeaMonsters() {
+        return seaMonsters;
     }
 
     public GameState move(String direction) {
@@ -101,6 +123,11 @@ public class Game {
 
         for (PirateShip pirate : pirates) {
             pirate.chase(playerLocation);
+        }
+
+        // Move every sea monster randomly
+        for (SeaMonster seaMonster : seaMonsters) {
+            seaMonster.moveRandomly();
         }
 
         return new GameState(this);

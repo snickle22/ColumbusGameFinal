@@ -94,7 +94,8 @@ button:hover {
 }
 
 .ship,
-.pirate {
+.pirate,
+.sea-monster {
     display: flex;
     align-items: center;
     justify-content: center;

@@ -81,28 +81,21 @@ async function loadGameState() {
 }
 
 function displayGame(gameState) {
-
     const grid = document.getElementById("game-grid");
-
     grid.innerHTML = "";
 
     grid.style.gridTemplateColumns =
         `repeat(${gameState.dimensions}, 50px)`;
-
     grid.style.gridTemplateRows =
         `repeat(${gameState.dimensions}, 50px)`;
 
     for (let y = 0; y < gameState.dimensions; y++) {
-
         for (let x = 0; x < gameState.dimensions; x++) {
-
             const cell = document.createElement("div");
-
             cell.classList.add("cell");
 
             // Display islands
             if (!gameState.map[x][y]) {
-
                 cell.classList.add("island");
 
                 const islandImage = document.createElement("img");
@@ -115,7 +108,6 @@ function displayGame(gameState) {
 
             // Display player ship
             if (x === gameState.shipX && y === gameState.shipY) {
-
                 cell.innerHTML = "";
 
                 const shipImage = document.createElement("img");
@@ -124,17 +116,13 @@ function displayGame(gameState) {
                 shipImage.classList.add("game-image");
 
                 cell.appendChild(shipImage);
-            }
-
-            // Display pirate ships
-            else {
-
+            } else {
+                // Display pirate ships
                 const pirateIndex = gameState.piratePositions.findIndex(
                     position => position[0] === x && position[1] === y
                 );
 
                 if (pirateIndex !== -1) {
-
                     cell.innerHTML = "";
                     cell.classList.add("pirate");
 
@@ -144,6 +132,25 @@ function displayGame(gameState) {
                     pirateImage.classList.add("game-image");
 
                     cell.appendChild(pirateImage);
+                } else {
+                    // Display sea monsters
+                    const seaMonsterIndex =
+                        gameState.seaMonsterPositions.findIndex(
+                            position => position[0] === x &&
+                                        position[1] === y
+                        );
+
+                    if (seaMonsterIndex !== -1) {
+                        cell.innerHTML = "";
+                        cell.classList.add("sea-monster");
+
+                        const seaMonsterImage = document.createElement("img");
+                        seaMonsterImage.src = "/images/seaMonster.jpg";
+                        seaMonsterImage.alt = "Sea monster";
+                        seaMonsterImage.classList.add("game-image");
+
+                        cell.appendChild(seaMonsterImage);
+                    }
                 }
             }
 
