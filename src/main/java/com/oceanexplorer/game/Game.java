@@ -116,8 +116,28 @@ public class Game {
         return seaMonsters;
     }
 
-    public GameState move(String direction) {
+    
+    public GameState executeCommand(GameCommand command) {
+        // Execute the player's command
+        command.execute(this);
 
+        // Get the player's updated location
+        Point playerLocation = ship.getPosition();
+
+        // Move pirates using the selected strategy
+        for (PirateShip pirate : pirates) {
+            pirateStrategy.move(pirate, playerLocation);
+        }
+
+        // Move sea monsters randomly
+        for (SeaMonster seaMonster : seaMonsters) {
+            seaMonster.moveRandomly();
+        }
+
+        return new GameState(this);
+    }
+
+    public void movePlayer(String direction) {
         switch (direction.toLowerCase()) {
             case "north":
                 ship.goNorth();
@@ -134,19 +154,11 @@ public class Game {
             default:
                 throw new IllegalArgumentException("Invalid direction.");
         }
-
-        // Move every pirate toward the player's position
-        Point playerLocation = ship.getPosition();
-
-        for (PirateShip pirate : pirates) {
-            pirateStrategy.move(pirate, playerLocation);
-        }
-
-        // Move every sea monster randomly
-        for (SeaMonster seaMonster : seaMonsters) {
-            seaMonster.moveRandomly();
-        }
-
-        return new GameState(this);
     }
+
+    // Keep this temporarily for compatibility with the existing server
+    public GameState move(String direction) {
+        return executeCommand(new MoveCommand(direction));
+    }
+
 }

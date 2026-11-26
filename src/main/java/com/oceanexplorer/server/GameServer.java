@@ -7,8 +7,10 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.oceanexplorer.game.Game;
-import com.oceanexplorer.game.GameState;
+import com.oceanexplorer.game.GameCommand;
 import com.oceanexplorer.game.GameConfig;
+import com.oceanexplorer.game.GameState;
+import com.oceanexplorer.game.MoveCommand;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -94,7 +96,8 @@ public class GameServer extends NanoHTTPD {
 
                 String direction = request.get("direction");
 
-                GameState gameState = game.move(direction);
+                GameCommand command = new MoveCommand(direction);
+                GameState gameState = game.executeCommand(command);
 
                 return newFixedLengthResponse(
                         Response.Status.OK,
