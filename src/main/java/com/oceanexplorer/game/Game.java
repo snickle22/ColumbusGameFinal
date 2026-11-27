@@ -1,4 +1,3 @@
-
 package com.oceanexplorer.game;
 
 import java.awt.Point;
@@ -12,14 +11,18 @@ public class Game {
     private int pirateCount;
     private int seaMonsterCount;
 
-    private PirateStrategy pirateStrategy;
-
     private OceanMap oceanMap;
     private Ship ship;
 
     private final List<PirateShip> pirates = new ArrayList<>();
     private final List<SeaMonster> seaMonsters = new ArrayList<>();
 
+    private PirateStrategy pirateStrategy;
+
+    // State pattern
+    private GamePhase phase;
+
+    // Default constructor
     public Game() {
         gridSize = 10;
         islandCount = 10;
@@ -30,32 +33,41 @@ public class Game {
         initializeGame();
     }
 
+    // Configurable constructor
     public Game(GameConfig config) {
         gridSize = config.getGridSize();
         islandCount = config.getIslandCount();
         pirateCount = config.getPirateCount();
         seaMonsterCount = config.getSeaMonsterCount();
-        pirateStrategy = createPirateStrategy(config.getPirateStrategy());
+
+        pirateStrategy = createPirateStrategy(
+                config.getPirateStrategy()
+        );
 
         initializeGame();
     }
 
+    // Create the selected pirate movement strategy
     private PirateStrategy createPirateStrategy(String strategy) {
+
         switch (strategy.toLowerCase()) {
             case "chase":
                 return new ChaseStrategy();
+
             case "random":
                 return new RandomStrategy();
+
             case "smart":
                 return new SmartStrategy();
+
             default:
-                throw new IllegalArgumentException("Invalid pirate strategy: " + strategy);
+                return new ChaseStrategy();
         }
     }
 
+    // Initialize the game
     private void initializeGame() {
 
-        // Get the shared Singleton map
         oceanMap = OceanMap.getInstance(gridSize);
         oceanMap.initializeMap();
         oceanMap.generateIslands(islandCount);
@@ -65,11 +77,10 @@ public class Game {
         pirates.clear();
         seaMonsters.clear();
 
-        // Track occupied locations so ships don't spawn on one another
         List<Point> occupiedLocations = new ArrayList<>();
         occupiedLocations.add(ship.getPosition());
 
-        // Create the requested number of pirate ships
+        // Create pirates
         for (int i = 0; i < pirateCount; i++) {
 
             PirateShip pirate = new PirateShip(
@@ -82,7 +93,7 @@ public class Game {
             occupiedLocations.add(pirate.getShipLocation());
         }
 
-        // Create the requested number of sea monsters
+        // Create sea monsters
         for (int i = 0; i < seaMonsterCount; i++) {
 
             SeaMonster seaMonster = new SeaMonster(
@@ -94,12 +105,84 @@ public class Game {
             seaMonsters.add(seaMonster);
             occupiedLocations.add(seaMonster.getPosition());
         }
+
+        // State pattern: start in Ready state
+        phase = new ReadyPhase();
     }
 
+    // Reset the game
     public void reset() {
         initializeGame();
     }
 
+    // Execute a command through the current game phase
+    public GameState executeCommand(GameCommand command) {
+
+        phase.handleMove(this, command);
+
+        return new GameState(this);
+    }
+
+    // Move all enemies
+    public void moveEnemies() {
+
+        Point playerLocation = ship.getPosition();
+
+        // Move pirates using the selected strategy
+        for (PirateShip pirate : pirates) {
+            pirateStrategy.move(pirate, playerLocation);
+        }
+
+        // Move sea monsters randomly
+        for (SeaMonster seaMonster : seaMonsters) {
+            seaMonster.moveRandomly();
+        }
+    }
+
+    // Move the player
+    public void movePlayer(String direction) {
+
+        switch (direction.toLowerCase()) {
+
+            case "north":
+                ship.goNorth();
+                break;
+
+            case "south":
+                ship.goSouth();
+                break;
+
+            case "east":
+                ship.goEast();
+                break;
+
+            case "west":
+                ship.goWest();
+                break;
+
+            default:
+                throw new IllegalArgumentException(
+                        "Invalid movement direction."
+                );
+        }
+    }
+
+    // State pattern: change the current phase
+    public void setPhase(GamePhase phase) {
+        this.phase = phase;
+    }
+
+    // Get the current phase
+    public GamePhase getPhase() {
+        return phase;
+    }
+
+    // Get the current phase name
+    public String getPhaseName() {
+        return phase.getName();
+    }
+
+    // Getters
     public OceanMap getOceanMap() {
         return oceanMap;
     }
@@ -116,49 +199,8 @@ public class Game {
         return seaMonsters;
     }
 
-    
-    public GameState executeCommand(GameCommand command) {
-        // Execute the player's command
-        command.execute(this);
-
-        // Get the player's updated location
-        Point playerLocation = ship.getPosition();
-
-        // Move pirates using the selected strategy
-        for (PirateShip pirate : pirates) {
-            pirateStrategy.move(pirate, playerLocation);
-        }
-
-        // Move sea monsters randomly
-        for (SeaMonster seaMonster : seaMonsters) {
-            seaMonster.moveRandomly();
-        }
-
-        return new GameState(this);
-    }
-
-    public void movePlayer(String direction) {
-        switch (direction.toLowerCase()) {
-            case "north":
-                ship.goNorth();
-                break;
-            case "south":
-                ship.goSouth();
-                break;
-            case "east":
-                ship.goEast();
-                break;
-            case "west":
-                ship.goWest();
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid direction.");
-        }
-    }
-
-    // Keep this temporarily for compatibility with the existing server
+    // Compatibility wrapper for movement
     public GameState move(String direction) {
         return executeCommand(new MoveCommand(direction));
     }
-
 }
