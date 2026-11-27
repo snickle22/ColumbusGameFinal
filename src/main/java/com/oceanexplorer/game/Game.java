@@ -22,6 +22,9 @@ public class Game {
     // State pattern
     private GamePhase phase;
 
+    //Observer pattern
+    private GameEventManager eventManager = new GameEventManager();
+
     // Default constructor
     public Game() {
         gridSize = 10;
@@ -108,6 +111,10 @@ public class Game {
 
         // State pattern: start in Ready state
         phase = new ReadyPhase();
+
+        // Observer pattern: register collision observer
+        eventManager = new GameEventManager();
+        eventManager.addObserver(new CollisionObserver(this));
     }
 
     // Reset the game
@@ -137,6 +144,35 @@ public class Game {
         for (SeaMonster seaMonster : seaMonsters) {
             seaMonster.moveRandomly();
         }
+
+        // Check for collisions after ememies have moved
+        checkCollisions();
+    }
+
+    // Check for collisions between the player and enemies
+    public boolean checkCollisions() {
+
+        Point playerLocation = ship.getPosition();
+
+        // Check pirate collisions
+        for (PirateShip pirate : pirates) {
+
+            if (playerLocation.equals(pirate.getShipLocation())) {
+                eventManager.notifyObservers("COLLISION");
+                return true;
+            }
+        }
+
+        // Check sea monster collisions
+        for (SeaMonster seaMonster : seaMonsters) {
+
+            if (playerLocation.equals(seaMonster.getPosition())) {
+                eventManager.notifyObservers("COLLISION");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Move the player

@@ -4,11 +4,20 @@ public class PlayingPhase implements GamePhase {
 
     @Override
     public void handleMove(Game game, GameCommand command) {
-        // Execute the player's movement command
+
+        // Execute the player's movement
         command.execute(game);
 
-        // Complete the rest of the turn
+        // Check if the player collided with an enemy
+        if (game.checkCollisions()) {
+            return;
+        }
+
+        // Move enemies
         game.moveEnemies();
+
+        // Check for collisions after enemies move
+        game.checkCollisions();
     }
 
     @Override
