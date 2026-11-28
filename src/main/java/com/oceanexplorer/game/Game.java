@@ -8,10 +8,10 @@ import java.util.List;
 
 public class Game {
 
-    private int gridSize;
-    private int islandCount;
-    private int pirateCount;
-    private int seaMonsterCount;
+    private final int gridSize;
+    private final int islandCount;
+    private final int pirateCount;
+    private final int seaMonsterCount;
 
     private OceanMap oceanMap;
     private Ship ship;
@@ -20,7 +20,7 @@ public class Game {
     private final List<PirateShip> pirates = new ArrayList<>();
     private final List<SeaMonster> seaMonsters = new ArrayList<>();
 
-    private PirateStrategy pirateStrategy;
+    private final PirateStrategy pirateStrategy;
 
     // State pattern
     private GamePhase phase;
@@ -55,17 +55,11 @@ public class Game {
     }
 
     private PirateStrategy createPirateStrategy(String strategy) {
-
-        switch (strategy.toLowerCase()) {
-            case "chase":
-                return new ChaseStrategy();
-            case "random":
-                return new RandomStrategy();
-            case "smart":
-                return new SmartStrategy();
-            default:
-                return new ChaseStrategy();
-        }
+        return switch (strategy.toLowerCase()) {
+            case "random" -> new RandomStrategy();
+            case "smart" -> new SmartStrategy();
+            default -> new ChaseStrategy();
+        };
     }
 
     private void initializeGame() {
@@ -172,18 +166,13 @@ public class Game {
 
             // Restore previous game phase
             switch (snapshot.getPhase()) {
-                case "Ready":
-                    phase = new ReadyPhase();
-                    break;
-                case "Playing":
-                    phase = new PlayingPhase();
-                    break;
-                case "Won":
-                    phase = new WonPhase();
-                    break;
-                case "Lost":
-                    phase = new LostPhase();
-                    break;
+                case "Ready" -> phase = new ReadyPhase();
+                case "Playing" -> phase = new PlayingPhase();
+                case "Won" -> phase = new WonPhase();
+                case "Lost" -> phase = new LostPhase();
+                default -> throw new IllegalArgumentException(
+                        "Unknown game phase."
+                );
             }
         }
 
@@ -263,22 +252,13 @@ public class Game {
     public void movePlayer(String direction) {
 
         switch (direction.toLowerCase()) {
-            case "north":
-                ship.goNorth();
-                break;
-            case "south":
-                ship.goSouth();
-                break;
-            case "east":
-                ship.goEast();
-                break;
-            case "west":
-                ship.goWest();
-                break;
-            default:
-                throw new IllegalArgumentException(
-                        "Invalid movement direction."
-                );
+            case "north" -> ship.goNorth();
+            case "south" -> ship.goSouth();
+            case "east" -> ship.goEast();
+            case "west" -> ship.goWest();
+            default -> throw new IllegalArgumentException(
+                    "Invalid movement direction."
+            );
         }
     }
 

@@ -3,9 +3,11 @@ package com.oceanexplorer.server;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.oceanexplorer.game.Game;
 import com.oceanexplorer.game.GameCommand;
 import com.oceanexplorer.game.GameConfig;
@@ -91,8 +93,10 @@ public class GameServer extends NanoHTTPD {
 
                 String requestBody = body.get("postData");
 
+                Type requestType =
+                        new TypeToken<Map<String, String>>() { }.getType();
                 Map<String, String> request =
-                        gson.fromJson(requestBody, Map.class);
+                        gson.fromJson(requestBody, requestType);
 
                 String direction = request.get("direction");
 

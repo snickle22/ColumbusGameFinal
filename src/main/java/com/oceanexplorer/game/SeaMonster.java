@@ -69,18 +69,10 @@ public class SeaMonster {
         int direction = random.nextInt(4);
 
         switch (direction) {
-            case 0:
-                goNorth();
-                break;
-            case 1:
-                goSouth();
-                break;
-            case 2:
-                goEast();
-                break;
-            case 3:
-                goWest();
-                break;
+            case 0 -> goNorth();
+            case 1 -> goSouth();
+            case 2 -> goEast();
+            case 3 -> goWest();
         }
     }
 

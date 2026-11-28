@@ -3,11 +3,11 @@ package com.oceanexplorer.game;
 
 public class GameConfig {
 
-    private int gridSize;
-    private int islandCount;
-    private int pirateCount;
-    private int seaMonsterCount;
-    private String pirateStrategy;
+    private final int gridSize;
+    private final int islandCount;
+    private final int pirateCount;
+    private final int seaMonsterCount;
+    private final String pirateStrategy;
 
     public GameConfig(int gridSize, int islandCount,
                      int pirateCount, int seaMonsterCount,

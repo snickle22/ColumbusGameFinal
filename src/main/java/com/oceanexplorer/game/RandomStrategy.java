@@ -11,18 +11,10 @@ public class RandomStrategy implements PirateStrategy {
         int direction = random.nextInt(4);
 
         switch (direction) {
-            case 0:
-                pirate.goNorth();
-                break;
-            case 1:
-                pirate.goSouth();
-                break;
-            case 2:
-                pirate.goEast();
-                break;
-            case 3:
-                pirate.goWest();
-                break;
+            case 0 -> pirate.goNorth();
+            case 1 -> pirate.goSouth();
+            case 2 -> pirate.goEast();
+            case 3 -> pirate.goWest();
         }
     }
 

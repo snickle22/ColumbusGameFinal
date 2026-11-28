@@ -34,7 +34,7 @@ public class OceanMap {
     }
 
     // Initializes the entire map as water
-    public void initializeMap() {
+    public final void initializeMap() {
 
         map = new boolean[dimensions][dimensions];
 
