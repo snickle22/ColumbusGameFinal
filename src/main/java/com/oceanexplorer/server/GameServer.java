@@ -123,6 +123,28 @@ public class GameServer extends NanoHTTPD {
             }
         }
 
+        // Undo the move recent turn
+        if (uri.equals("/api/undo") &&
+                session.getMethod() == Method.POST) {
+
+            if (game == null) {
+                return newFixedLengthResponse(
+                        Response.Status.BAD_REQUEST,
+                        "text/plain",
+                        "No game has been started."
+                );
+            }
+
+            GameState gameState = game.undo();
+
+            return newFixedLengthResponse(
+                    Response.Status.OK,
+                    "application/json",
+                    gson.toJson(gameState)
+            );
+        }
+
+
         // Serve the HTML, CSS, and JavaScript files
         String resourcePath;
         String contentType;

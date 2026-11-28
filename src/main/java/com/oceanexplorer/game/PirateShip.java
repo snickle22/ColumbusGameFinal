@@ -12,7 +12,6 @@ public class PirateShip {
     private final int dimensions;
     private final Random random = new Random();
 
-    // Location pirates are not allowed to enter
     private Point blockedLocation;
 
     public PirateShip(boolean[][] oceanGrid, List<Point> occupiedLocations,
@@ -39,13 +38,17 @@ public class PirateShip {
         position = new Point(x, y);
     }
 
-    // Set the treasure location that pirates cannot enter
     public void setBlockedLocation(Point location) {
         blockedLocation = new Point(location);
     }
 
     public Point getShipLocation() {
         return new Point(position);
+    }
+
+    // Restore the pirate's previous position (used by Undo)
+    public void setPosition(Point position) {
+        this.position = new Point(position);
     }
 
     private boolean canMoveTo(int x, int y) {

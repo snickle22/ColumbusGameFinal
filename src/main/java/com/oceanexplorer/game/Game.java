@@ -1,7 +1,9 @@
 package com.oceanexplorer.game;
 
 import java.awt.Point;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 public class Game {
@@ -23,10 +25,12 @@ public class Game {
     // State pattern
     private GamePhase phase;
 
-    //Observer pattern
+    // Observer pattern
     private GameEventManager eventManager = new GameEventManager();
 
-    // Default constructor
+    // Undo history
+    private final Deque<GameSnapshot> history = new ArrayDeque<>();
+
     public Game() {
         gridSize = 10;
         islandCount = 10;
@@ -37,7 +41,6 @@ public class Game {
         initializeGame();
     }
 
-    // Configurable constructor
     public Game(GameConfig config) {
         gridSize = config.getGridSize();
         islandCount = config.getIslandCount();
@@ -51,25 +54,20 @@ public class Game {
         initializeGame();
     }
 
-    // Create the selected pirate movement strategy
     private PirateStrategy createPirateStrategy(String strategy) {
 
         switch (strategy.toLowerCase()) {
             case "chase":
                 return new ChaseStrategy();
-
             case "random":
                 return new RandomStrategy();
-
             case "smart":
                 return new SmartStrategy();
-
             default:
                 return new ChaseStrategy();
         }
     }
 
-    // Initialize the game
     private void initializeGame() {
 
         oceanMap = OceanMap.getInstance(gridSize);
@@ -80,15 +78,19 @@ public class Game {
 
         pirates.clear();
         seaMonsters.clear();
+        history.clear();
 
-        // Track occupied locations to avoid placing enemies on top of each other or the player
         List<Point> occupiedLocations = new ArrayList<>();
         occupiedLocations.add(ship.getPosition());
 
-        // Create treasure
-        treasure = new Treasure(oceanMap.getMap(), occupiedLocations, gridSize);
+        treasure = new Treasure(
+                oceanMap.getMap(),
+                occupiedLocations,
+                gridSize
+        );
 
-        // Create pirates
+        occupiedLocations.add(treasure.getLocation());
+
         for (int i = 0; i < pirateCount; i++) {
 
             PirateShip pirate = new PirateShip(
@@ -102,7 +104,6 @@ public class Game {
             occupiedLocations.add(pirate.getShipLocation());
         }
 
-        // Create sea monsters
         for (int i = 0; i < seaMonsterCount; i++) {
 
             SeaMonster seaMonster = new SeaMonster(
@@ -116,53 +117,103 @@ public class Game {
             occupiedLocations.add(seaMonster.getPosition());
         }
 
-        // State pattern: start in Ready state
         phase = new ReadyPhase();
 
-        // Observer pattern: register collision and treasure observers
         eventManager = new GameEventManager();
         eventManager.addObserver(new CollisionObserver(this));
         eventManager.addObserver(new TreasureObserver(this));
     }
 
-    // Reset the game
     public void reset() {
         initializeGame();
     }
 
-    // Execute a command through the current game phase
+    // Execute a command and save the previous turn for Undo
     public GameState executeCommand(GameCommand command) {
+
+        // Do not accept moves after the game has ended
+        if (phase.getName().equals("Won")
+                || phase.getName().equals("Lost")) {
+            return new GameState(this);
+        }
+
+        // Save the board before this turn begins
+        history.push(new GameSnapshot(this));
 
         phase.handleMove(this, command);
 
         return new GameState(this);
     }
 
-    // Move all enemies
+    // Undo the most recent turn
+    public GameState undo() {
+
+        if (!history.isEmpty()) {
+            GameSnapshot snapshot = history.pop();
+
+            // Restore player position
+            ship.setPosition(snapshot.getShipPosition());
+
+            // Restore pirate positions
+            List<Point> piratePositions =
+                    snapshot.getPiratePositions();
+
+            for (int i = 0; i < pirates.size(); i++) {
+                pirates.get(i).setPosition(piratePositions.get(i));
+            }
+
+            // Restore sea monster positions
+            List<Point> monsterPositions =
+                    snapshot.getSeaMonsterPositions();
+
+            for (int i = 0; i < seaMonsters.size(); i++) {
+                seaMonsters.get(i).setPosition(monsterPositions.get(i));
+            }
+
+            // Restore previous game phase
+            switch (snapshot.getPhase()) {
+                case "Ready":
+                    phase = new ReadyPhase();
+                    break;
+                case "Playing":
+                    phase = new PlayingPhase();
+                    break;
+                case "Won":
+                    phase = new WonPhase();
+                    break;
+                case "Lost":
+                    phase = new LostPhase();
+                    break;
+            }
+        }
+
+        return new GameState(this);
+    }
+
+    // Check whether Undo is available
+    public boolean canUndo() {
+        return !history.isEmpty();
+    }
+
     public void moveEnemies() {
 
         Point playerLocation = ship.getPosition();
 
-        // Move pirates using the selected strategy
         for (PirateShip pirate : pirates) {
             pirateStrategy.move(pirate, playerLocation);
         }
 
-        // Move sea monsters randomly
         for (SeaMonster seaMonster : seaMonsters) {
             seaMonster.moveRandomly();
         }
 
-        // Check for collisions after ememies have moved
         checkCollisions();
     }
 
-    // Check for collisions between the player and enemies
     public boolean checkCollisions() {
 
         Point playerLocation = ship.getPosition();
 
-        // Check pirate collisions
         for (PirateShip pirate : pirates) {
 
             if (playerLocation.equals(pirate.getShipLocation())) {
@@ -171,7 +222,6 @@ public class Game {
             }
         }
 
-        // Check sea monster collisions
         for (SeaMonster seaMonster : seaMonsters) {
 
             if (playerLocation.equals(seaMonster.getPosition())) {
@@ -183,7 +233,6 @@ public class Game {
         return false;
     }
 
-    // Check if the player has found the treasure
     public boolean checkTreasure() {
 
         Point playerLocation = ship.getPosition();
@@ -192,30 +241,25 @@ public class Game {
             eventManager.notifyObservers("TREASURE_FOUND");
             return true;
         }
+
         return false;
     }
 
-    // Move the player
     public void movePlayer(String direction) {
 
         switch (direction.toLowerCase()) {
-
             case "north":
                 ship.goNorth();
                 break;
-
             case "south":
                 ship.goSouth();
                 break;
-
             case "east":
                 ship.goEast();
                 break;
-
             case "west":
                 ship.goWest();
                 break;
-
             default:
                 throw new IllegalArgumentException(
                         "Invalid movement direction."
@@ -223,22 +267,18 @@ public class Game {
         }
     }
 
-    // State pattern: change the current phase
     public void setPhase(GamePhase phase) {
         this.phase = phase;
     }
 
-    // Get the current phase
     public GamePhase getPhase() {
         return phase;
     }
 
-    // Get the current phase name
     public String getPhaseName() {
         return phase.getName();
     }
 
-    // Getters
     public OceanMap getOceanMap() {
         return oceanMap;
     }
@@ -259,7 +299,6 @@ public class Game {
         return treasure;
     }
 
-    // Compatibility wrapper for movement
     public GameState move(String direction) {
         return executeCommand(new MoveCommand(direction));
     }

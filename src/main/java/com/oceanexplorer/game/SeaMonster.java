@@ -1,3 +1,4 @@
+
 package com.oceanexplorer.game;
 
 import java.awt.Point;
@@ -11,7 +12,6 @@ public class SeaMonster {
     private final int dimensions;
     private final Random random = new Random();
 
-    // Location sea monsters are not allowed to enter
     private Point blockedLocation;
 
     public SeaMonster(boolean[][] oceanGrid, List<Point> occupiedLocations,
@@ -38,13 +38,17 @@ public class SeaMonster {
         position = new Point(x, y);
     }
 
-    // Set the treasure location that sea monsters cannot enter
     public void setBlockedLocation(Point location) {
         blockedLocation = new Point(location);
     }
 
     public Point getPosition() {
         return new Point(position);
+    }
+
+    // Restore the sea monster's previous position (used by Undo)
+    public void setPosition(Point position) {
+        this.position = new Point(position);
     }
 
     private boolean canMoveTo(int x, int y) {
@@ -100,7 +104,7 @@ public class SeaMonster {
 
     private void goWest() {
         if (canMoveTo(position.x - 1, position.y)) {
-            position.x--;
+            position.y--;
         }
     }
 }

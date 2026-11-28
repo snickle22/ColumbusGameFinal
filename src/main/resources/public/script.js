@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("change-settings-button")
         .addEventListener("click", changeSettings);
 
+    // Undo button
+    document.getElementById("undo-button")
+        .addEventListener("click", undoMove);
+
     // Register keyboard controls only once
     document.addEventListener("keydown", handleKeyPress);
 });
@@ -36,10 +40,8 @@ async function startGame(config = getGameConfig()) {
 
     try {
 
-        // Remember the settings for replay
         lastGameConfig = { ...config };
 
-        // Hide the end game popup
         document.getElementById("end-game-modal").style.display = "none";
 
         const response = await fetch("/api/start", {
@@ -56,10 +58,7 @@ async function startGame(config = getGameConfig()) {
 
         const gameState = await response.json();
 
-        // Hide start menu
         document.getElementById("start-menu").style.display = "none";
-
-        // Show game screen
         document.getElementById("game-screen").style.display = "block";
 
         displayGame(gameState);
@@ -82,14 +81,11 @@ function replayGame() {
 // Return to the start menu
 function changeSettings() {
 
-    // Hide popup and game screen
     document.getElementById("end-game-modal").style.display = "none";
     document.getElementById("game-screen").style.display = "none";
 
-    // Show start menu
     document.getElementById("start-menu").style.display = "block";
 
-    // Clear the previous game board
     document.getElementById("game-grid").innerHTML = "";
 
     document.getElementById("server-message").textContent =
@@ -133,6 +129,11 @@ function displayGame(gameState) {
 
     grid.style.gridTemplateRows =
         `repeat(${gameState.dimensions}, 50px)`;
+
+    // Update Undo button
+    const undoButton = document.getElementById("undo-button");
+
+    undoButton.disabled = !gameState.canUndo;
 
     // Display game status
     const serverMessage = document.getElementById("server-message");
@@ -256,6 +257,40 @@ function displayGame(gameState) {
     }
 }
 
+// Undo the most recent turn
+async function undoMove() {
+
+    const undoButton = document.getElementById("undo-button");
+
+    if (undoButton.disabled) {
+        return;
+    }
+
+    try {
+
+        undoButton.disabled = true;
+
+        const response = await fetch("/api/undo", {
+            method: "POST"
+        });
+
+        if (!response.ok) {
+            throw new Error("Undo request failed.");
+        }
+
+        const gameState = await response.json();
+
+        displayGame(gameState);
+
+    } catch (error) {
+
+        console.error("Error undoing move:", error);
+
+        alert("Could not undo the previous move.");
+
+    }
+}
+
 // Display the centered end-game popup
 function showEndGamePopup(result) {
 
@@ -295,7 +330,6 @@ function handleKeyPress(event) {
 
         event.preventDefault();
 
-        // Don't send keyboard movement while the popup is open
         const modal = document.getElementById("end-game-modal");
 
         if (modal.style.display !== "none") {
