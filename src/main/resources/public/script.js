@@ -4,6 +4,9 @@ console.log("Ocean Explorer JavaScript is running!");
 // Store the settings used for the current game
 let lastGameConfig = null;
 
+// Tracks whether the previous game is being replayed
+let isWatchingReplay = false;
+
 document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("start-game-button")
@@ -14,6 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("change-settings-button")
         .addEventListener("click", changeSettings);
+
+    document.getElementById("watch-game-button")
+        .addEventListener("click", watchGame);
 
     // Undo button
     document.getElementById("undo-button")
@@ -119,7 +125,7 @@ async function loadGameState() {
 }
 
 // Display the game board and current game status
-function displayGame(gameState) {
+function displayGame(gameState, showPopup = true) {
 
     const grid = document.getElementById("game-grid");
     grid.innerHTML = "";
@@ -133,7 +139,7 @@ function displayGame(gameState) {
     // Update Undo button
     const undoButton = document.getElementById("undo-button");
 
-    undoButton.disabled = !gameState.canUndo;
+    undoButton.disabled = isWatchingReplay || !gameState.canUndo;
 
     // Display game status
     const serverMessage = document.getElementById("server-message");
@@ -143,14 +149,22 @@ function displayGame(gameState) {
         serverMessage.textContent =
             "Congratulations! You found the treasure and won the game!";
 
-        showEndGamePopup("Won");
+        if (showPopup) {
+            showEndGamePopup("Won");
+        } else {
+            document.getElementById("end-game-modal").style.display = "none";
+        }
 
     } else if (gameState.phase === "Lost") {
 
         serverMessage.textContent =
             "Game Over! Your ship was caught by an enemy!";
 
-        showEndGamePopup("Lost");
+        if (showPopup) {
+            showEndGamePopup("Lost");
+        } else {
+            document.getElementById("end-game-modal").style.display = "none";
+        }
 
     } else {
 
@@ -366,5 +380,98 @@ async function moveShip(direction) {
     } catch (error) {
 
         console.error("Error moving ship:", error);
+    }
+}
+
+// Replay the completed game
+async function watchGame() {
+
+    if (isWatchingReplay) {
+        return;
+    }
+
+    try {
+
+        isWatchingReplay = true;
+
+        // Hide the end-game popup during playback
+        document.getElementById("end-game-modal").style.display = "none";
+
+        // Retrieve the saved history and the current board information
+        const [replayResponse, stateResponse] = await Promise.all([
+            fetch("/api/replay"),
+            fetch("/api/state")
+        ]);
+
+        if (!replayResponse.ok || !stateResponse.ok) {
+            throw new Error("Could not retrieve the game history.");
+        }
+
+        const snapshots = await replayResponse.json();
+        const currentState = await stateResponse.json();
+
+        if (snapshots.length === 0) {
+            throw new Error("No gameplay history is available.");
+        }
+
+        // Combine each snapshot with the map and treasure information
+        const replayStates = snapshots.map(snapshot => ({
+
+            ...currentState,
+
+            shipX: snapshot.shipPosition.x,
+            shipY: snapshot.shipPosition.y,
+
+            piratePositions: snapshot.piratePositions.map(
+                position => [position.x, position.y]
+            ),
+
+            seaMonsterPositions: snapshot.seaMonsterPositions.map(
+                position => [position.x, position.y]
+            ),
+
+            phase: snapshot.phase,
+            canUndo: false
+        }));
+
+        // Play each saved board state
+        for (const gameState of replayStates) {
+
+            displayGame(gameState, false);
+
+            document.getElementById("server-message").textContent =
+                "Watching your previous voyage...";
+
+            // Wait 600 milliseconds before showing the next turn
+            await new Promise(resolve => setTimeout(resolve, 600));
+        }
+
+        // Playback is finished
+        isWatchingReplay = false;
+
+        // Display the final board and original end-game popup
+        const finalState = replayStates[replayStates.length - 1];
+
+        displayGame(finalState);
+
+    } catch (error) {
+
+        console.error("Error replaying game:", error);
+
+        isWatchingReplay = false;
+
+        alert("Could not replay the previous game.");
+
+        // Restore the current board if playback fails
+        try {
+            const response = await fetch("/api/state");
+
+            if (response.ok) {
+                const gameState = await response.json();
+                displayGame(gameState);
+            }
+        } catch (restoreError) {
+            console.error("Could not restore the game board:", restoreError);
+        }
     }
 }

@@ -195,6 +195,21 @@ public class Game {
         return !history.isEmpty();
     }
 
+    // Get complete game history for playback
+    public List<GameSnapshot> getReplayHistory() {
+
+        // Copy existing history
+        List<GameSnapshot> replayHistory = new ArrayList<>(history);
+
+        // Deque is LIFO, so reverse the order for playback
+        java.util.Collections.reverse(replayHistory);
+
+        // Add the current state to the end of the list
+        replayHistory.add(new GameSnapshot(this));
+
+        return replayHistory;
+    }
+
     public void moveEnemies() {
 
         Point playerLocation = ship.getPosition();

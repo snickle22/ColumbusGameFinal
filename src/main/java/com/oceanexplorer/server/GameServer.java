@@ -144,6 +144,25 @@ public class GameServer extends NanoHTTPD {
             );
         }
 
+        // Handle game replay
+        if (uri.equals("/api/replay") &&
+                session.getMethod() == Method.GET) {
+
+            if (game == null) {
+                return newFixedLengthResponse(
+                        Response.Status.BAD_REQUEST,
+                        "text/plain",
+                        "No game has been started."
+                );
+            }
+
+            return newFixedLengthResponse(
+                    Response.Status.OK,
+                    "application/json",
+                    gson.toJson(game.getReplayHistory())
+            );
+        }
+
 
         // Serve the HTML, CSS, and JavaScript files
         String resourcePath;
