@@ -13,6 +13,7 @@ public class Game {
 
     private OceanMap oceanMap;
     private Ship ship;
+    private Treasure treasure;
 
     private final List<PirateShip> pirates = new ArrayList<>();
     private final List<SeaMonster> seaMonsters = new ArrayList<>();
@@ -80,8 +81,12 @@ public class Game {
         pirates.clear();
         seaMonsters.clear();
 
+        // Track occupied locations to avoid placing enemies on top of each other or the player
         List<Point> occupiedLocations = new ArrayList<>();
         occupiedLocations.add(ship.getPosition());
+
+        // Create treasure
+        treasure = new Treasure(oceanMap.getMap(), occupiedLocations, gridSize);
 
         // Create pirates
         for (int i = 0; i < pirateCount; i++) {
@@ -92,6 +97,7 @@ public class Game {
                     gridSize
             );
 
+            pirate.setBlockedLocation(treasure.getLocation());
             pirates.add(pirate);
             occupiedLocations.add(pirate.getShipLocation());
         }
@@ -105,6 +111,7 @@ public class Game {
                     gridSize
             );
 
+            seaMonster.setBlockedLocation(treasure.getLocation());
             seaMonsters.add(seaMonster);
             occupiedLocations.add(seaMonster.getPosition());
         }
@@ -112,9 +119,10 @@ public class Game {
         // State pattern: start in Ready state
         phase = new ReadyPhase();
 
-        // Observer pattern: register collision observer
+        // Observer pattern: register collision and treasure observers
         eventManager = new GameEventManager();
         eventManager.addObserver(new CollisionObserver(this));
+        eventManager.addObserver(new TreasureObserver(this));
     }
 
     // Reset the game
@@ -172,6 +180,18 @@ public class Game {
             }
         }
 
+        return false;
+    }
+
+    // Check if the player has found the treasure
+    public boolean checkTreasure() {
+
+        Point playerLocation = ship.getPosition();
+
+        if (treasure.isAtLocation(playerLocation)) {
+            eventManager.notifyObservers("TREASURE_FOUND");
+            return true;
+        }
         return false;
     }
 
@@ -233,6 +253,10 @@ public class Game {
 
     public List<SeaMonster> getSeaMonsters() {
         return seaMonsters;
+    }
+
+    public Treasure getTreasure() {
+        return treasure;
     }
 
     // Compatibility wrapper for movement

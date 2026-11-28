@@ -11,30 +11,57 @@ public class SeaMonster {
     private final int dimensions;
     private final Random random = new Random();
 
+    // Location sea monsters are not allowed to enter
+    private Point blockedLocation;
+
     public SeaMonster(boolean[][] oceanGrid, List<Point> occupiedLocations,
-                     int dimensions) {
+                      int dimensions) {
+
         this.oceanGrid = oceanGrid;
         this.dimensions = dimensions;
+
         setStartPosition(occupiedLocations);
     }
 
     private void setStartPosition(List<Point> occupiedLocations) {
-        int x, y;
+
+        int x;
+        int y;
 
         do {
             x = random.nextInt(dimensions);
             y = random.nextInt(dimensions);
-        } while (!oceanGrid[x][y] ||
-                 occupiedLocations.contains(new Point(x, y)));
+
+        } while (!oceanGrid[x][y]
+                || occupiedLocations.contains(new Point(x, y)));
 
         position = new Point(x, y);
+    }
+
+    // Set the treasure location that sea monsters cannot enter
+    public void setBlockedLocation(Point location) {
+        blockedLocation = new Point(location);
     }
 
     public Point getPosition() {
         return new Point(position);
     }
 
+    private boolean canMoveTo(int x, int y) {
+
+        Point destination = new Point(x, y);
+
+        return x >= 0
+                && x < dimensions
+                && y >= 0
+                && y < dimensions
+                && oceanGrid[x][y]
+                && (blockedLocation == null
+                    || !destination.equals(blockedLocation));
+    }
+
     public void moveRandomly() {
+
         int direction = random.nextInt(4);
 
         switch (direction) {
@@ -54,28 +81,25 @@ public class SeaMonster {
     }
 
     private void goNorth() {
-        if (position.y > 0 && oceanGrid[position.x][position.y - 1]) {
+        if (canMoveTo(position.x, position.y - 1)) {
             position.y--;
         }
     }
 
     private void goSouth() {
-        if (position.y < dimensions - 1 &&
-                oceanGrid[position.x][position.y + 1]) {
+        if (canMoveTo(position.x, position.y + 1)) {
             position.y++;
         }
     }
 
     private void goEast() {
-        if (position.x < dimensions - 1 &&
-                oceanGrid[position.x + 1][position.y]) {
+        if (canMoveTo(position.x + 1, position.y)) {
             position.x++;
         }
     }
 
     private void goWest() {
-        if (position.x > 0 &&
-                oceanGrid[position.x - 1][position.y]) {
+        if (canMoveTo(position.x - 1, position.y)) {
             position.x--;
         }
     }

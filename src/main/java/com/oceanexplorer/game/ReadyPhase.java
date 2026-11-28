@@ -1,3 +1,4 @@
+
 package com.oceanexplorer.game;
 
 public class ReadyPhase implements GamePhase {
@@ -8,11 +9,8 @@ public class ReadyPhase implements GamePhase {
         // Transition to Playing when the first move is made
         game.setPhase(new PlayingPhase());
 
-        // Execute the player's first move
-        command.execute(game);
-
-        // Move enemies after the player's first move
-        game.moveEnemies();
+        // Handle the first move using the Playing phase
+        game.getPhase().handleMove(game, command);
     }
 
     @Override

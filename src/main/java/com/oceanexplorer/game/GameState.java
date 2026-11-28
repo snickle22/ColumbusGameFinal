@@ -11,13 +11,20 @@ public class GameState {
     private final int shipX;
     private final int shipY;
 
+    // Treasure coordinates
+    private final int treasureX;
+    private final int treasureY;
+
     // Each entry contains a pirate's [x, y] coordinates
     private final int[][] piratePositions;
 
-    // Sea moonster [x, y] coordinates
+    // Each entry contains a sea monster's [x, y] coordinates
     private final int[][] seaMonsterPositions;
 
     private final int dimensions;
+
+    // Game status
+    private final String phase;
 
     public GameState(Game game) {
 
@@ -26,6 +33,11 @@ public class GameState {
         Point shipLocation = game.getShip().getPosition();
         shipX = shipLocation.x;
         shipY = shipLocation.y;
+
+        // Get treasure coordinates
+        Point treasureLocation = game.getTreasure().getLocation();
+        treasureX = treasureLocation.x;
+        treasureY = treasureLocation.y;
 
         List<PirateShip> pirates = game.getPirates();
 
@@ -40,6 +52,7 @@ public class GameState {
         }
 
         List<SeaMonster> seaMonsters = game.getSeaMonsters();
+
         seaMonsterPositions = new int[seaMonsters.size()][2];
 
         for (int i = 0; i < seaMonsters.size(); i++) {
@@ -51,10 +64,16 @@ public class GameState {
         }
 
         dimensions = game.getOceanMap().getDimensions();
+
+        phase = game.getPhaseName();
     }
 
     public boolean[][] getMap() {
         return map;
+    }
+
+    public String getPhase() {
+        return phase;
     }
 
     public int getShipX() {
@@ -63,6 +82,14 @@ public class GameState {
 
     public int getShipY() {
         return shipY;
+    }
+
+    public int getTreasureX() {
+        return treasureX;
+    }
+
+    public int getTreasureY() {
+        return treasureY;
     }
 
     public int[][] getPiratePositions() {

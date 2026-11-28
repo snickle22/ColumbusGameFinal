@@ -1,3 +1,4 @@
+
 package com.oceanexplorer.game;
 
 public class PlayingPhase implements GamePhase {
@@ -8,12 +9,17 @@ public class PlayingPhase implements GamePhase {
         // Execute the player's movement
         command.execute(game);
 
-        // Check if the player collided with an enemy
+        // Check whether the player reached the treasure
+        if (game.checkTreasure()) {
+            return;
+        }
+
+        // Check whether the player collided with an enemy
         if (game.checkCollisions()) {
             return;
         }
 
-        // Move enemies
+        // Move pirates and sea monsters
         game.moveEnemies();
 
         // Check for collisions after enemies move
